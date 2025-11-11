@@ -2,6 +2,7 @@
 //!
 //! This API is used to construct payload builders workflows.
 
+pub(crate) use step::StepInstance;
 use {
 	crate::{prelude::*, reth::builder::components::PayloadServiceBuilder},
 	core::{any::Any, fmt::Display, panic::Location},
@@ -10,7 +11,6 @@ use {
 	futures::Stream,
 	pipelines_macros::impl_into_pipeline_steps,
 	std::sync::Arc,
-	step::StepInstance,
 };
 
 mod events;
@@ -122,7 +122,7 @@ impl<P: Platform> Pipeline<P> {
 	/// Sets payload building limits for the pipeline.
 	///
 	/// Here we can either use an instance of `LimitsFactory` that generates
-	/// limits dynamically according to a user-defined logic, or we can use a
+	/// limits dynamically, according to a user-defined logic, or we can use a
 	/// fixed `Limits` instance.
 	#[must_use]
 	pub fn with_limits<T, L: IntoScopedLimits<P, T>>(self, limits: L) -> Self {
