@@ -1,15 +1,10 @@
 use {
-	crate::{
-		alloy::consensus::BlockHeader,
-		prelude::*,
-		reth::{
-			api::NodeTypes,
-			chainspec::EthChainSpec,
-			node::builder::PayloadTypes,
-			optimism::node::OpPayloadBuilderAttributes,
-		},
-	},
+	crate::{alloy, prelude::*, reth},
+	alloy::consensus::BlockHeader,
 	core::time::Duration,
+	reth::{api::NodeTypes, chainspec::EthChainSpec, optimism::node::OpDAConfig},
+	reth_optimism_node::payload::config::OpGasLimitConfig,
+	serde::{Deserialize, Serialize},
 	std::time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -17,11 +12,23 @@ use {
 pub struct OptimismDefaultLimits;
 
 #[allow(clippy::struct_field_names)]
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct OpLimitsExt {
 	pub max_tx_da: Option<u64>,
 	pub max_block_da: Option<u64>,
 	pub max_block_da_footprint: Option<u64>,
+}
+
+impl Default for OpLimitsExt {
+	fn default() -> Self {
+		let gas_config = OpGasLimitConfig::default();
+		let da_config = OpDAConfig::default();
+		OpLimitsExt {
+			max_tx_da: da_config.max_da_tx_size(),
+			max_block_da: da_config.max_da_block_size(),
+			max_block_da_footprint: gas_config.gas_limit(),
+		}
+	}
 }
 
 impl LimitExtension for OpLimitsExt {
@@ -39,14 +46,12 @@ impl LimitExtension for OpLimitsExt {
 impl<P> PlatformLimits<P> for OptimismDefaultLimits
 where
 	P: Platform<
-		NodeTypes: NodeTypes<
-			Payload: PayloadTypes<
-				PayloadBuilderAttributes = OpPayloadBuilderAttributes<
-					types::Transaction<P>,
-				>,
+			ExtraLimits = OpLimitsExt,
+			NodeTypes: NodeTypes<
+				ChainSpec = types::ChainSpec<Optimism>,
+				Payload = types::PayloadTypes<Optimism>,
 			>,
 		>,
-	>,
 {
 	fn create(&self, block: &BlockContext<P>) -> Limits<P> {
 		let mut limits = Limits::gas_limit(
@@ -74,6 +79,15 @@ where
 		{
 			limits = limits.with_blob_params(blob_params);
 		}
+
+		// Extension for optimism
+		let da_config = OpDAConfig::default();
+		limits = limits.with_ext(OpLimitsExt {
+			// 0 means no limit
+			max_tx_da: da_config.max_da_tx_size().filter(|&v| v != 0),
+			max_block_da: da_config.max_da_block_size().filter(|&v| v != 0),
+			max_block_da_footprint: Some(limits.gas_limit),
+		});
 
 		limits
 	}
