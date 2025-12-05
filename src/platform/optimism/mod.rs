@@ -93,7 +93,7 @@ impl Platform for Optimism {
 		provider: &dyn StateProvider,
 	) -> Result<types::BuiltPayload<P>, PayloadBuilderError>
 	where
-		P: traits::PlatformExecBounds<Self>,
+		P: traits::PlatformExecCtxBounds<Self>,
 	{
 		let block = payload.block();
 		let transactions = extract_external_txs(&payload);

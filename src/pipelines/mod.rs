@@ -434,6 +434,19 @@ pub mod traits {
 			>
 	{
 	}
+
+	// equal to `PlatformExecBounds` but with stricter checkpoint context
+	pub trait PlatformExecCtxBounds<P: Platform>:
+		PlatformExecBounds<P>
+		+ Platform<CheckpointContext = types::CheckpointContext<P>>
+	{
+	}
+
+	impl<T: Platform, P: Platform> PlatformExecCtxBounds<T> for P where
+		P: PlatformExecBounds<T>
+			+ Platform<CheckpointContext = types::CheckpointContext<T>>
+	{
+	}
 }
 
 // internal utilities
