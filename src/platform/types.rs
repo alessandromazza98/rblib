@@ -103,6 +103,9 @@ pub type DefaultLimits<P: Platform> = P::DefaultLimits;
 /// Extracts the type that can provide additional limits.
 pub type ExtraLimits<P: Platform> = P::ExtraLimits;
 
+/// Extracts the type that contains the checkpoint context.
+pub type CheckpointContext<P: Platform> = P::CheckpointContext;
+
 /// The result of executing a transaction in the EVM.
 pub type TransactionExecutionResult<P: Platform> =
 	ExecutionResult<EvmHaltReason<P>>;

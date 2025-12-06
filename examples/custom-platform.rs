@@ -60,7 +60,7 @@ impl Platform for CustomPlatform {
 		provider: &dyn StateProvider,
 	) -> Result<types::BuiltPayload<Self>, PayloadBuilderError>
 	where
-		P: traits::PlatformExecBounds<Self>,
+		P: traits::PlatformExecCtxBounds<Self>,
 	{
 		Optimism::build_payload::<P>(payload, provider)
 	}

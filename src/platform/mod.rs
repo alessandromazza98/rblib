@@ -122,7 +122,7 @@ pub trait Platform:
 		provider: &dyn StateProvider,
 	) -> Result<types::BuiltPayload<P>, PayloadBuilderError>
 	where
-		P: traits::PlatformExecBounds<Self>;
+		P: traits::PlatformExecCtxBounds<Self>;
 }
 
 /// This is an optional extension trait for platforms that want to provide info
